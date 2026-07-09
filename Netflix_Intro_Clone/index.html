@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix Intro Exact Clone</title>
+    <style>
+        :root {
+            --netflix-red: #e50914;
+            --netflix-dark: #b20710;
+            --netflix-shadow: #831010;
+            --bg-black: #000000;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-black);
+            /* Cinematic Vignette Background */
+            background: radial-gradient(circle at center, #141414 0%, #000000 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        /* --- CONTROL BUTTON --- */
+        .play-btn {
+            position: absolute;
+            bottom: 50px;
+            z-index: 1000;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 12px;
+            transition: 0.3s;
+            border-radius: 4px;
+        }
+        .play-btn:hover {
+            border-color: #fff;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- MAIN STAGE --- */
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1500px;
+        }
+
+        /* --- THE 'N' LOGO WRAPPER --- */
+        .n-logo {
+            position: relative;
+            width: 300px;
+            height: 525px; 
+            opacity: 0; 
+        }
+
+        /* Responsive scaling for mobile */
+        @media (max-width: 400px) {
+            .n-logo {
+                transform: scale(0.6);
+            }
+        }
+
+        /* --- LEG GEOMETRY --- */
+        
+        .leg {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 20%; /* Exact 60px */
+            background-color: var(--netflix-red);
+            backface-visibility: hidden; /* Prevents flickering */
+        }
+
+        /* 1. LEFT LEG (Vertical) */
+        .leg-left {
+            left: 0;
+            background: linear-gradient(to bottom, var(--netflix-red), var(--netflix-dark));
+            transform-origin: bottom center;
+            transform: scaleY(0);
+            z-index: 10;
+        }
+
+        /* 2. RIGHT LEG (Vertical) */
+        .leg-right {
+            right: 0;
+            background: linear-gradient(to bottom, var(--netflix-red), var(--netflix-dark));
+            transform-origin: bottom center;
+            transform: scaleY(0);
+            z-index: 10;
+        }
+
+        /* 3. MIDDLE LEG (Diagonal) */
+        .leg-middle {
+            left: 0; 
+            width: 20%; 
+            height: 100%;
+            z-index: 20; /* Sits on TOP */
+            background: var(--netflix-red);
+            transform-origin: top left;
+            
+            /* Precise Skew for 300x525 dimensions */
+            transform: skewX(24.57deg) scaleY(0); 
+
+            /* Solid Gradient to prevent gaps */
+            background: linear-gradient(
+                to right, 
+                var(--netflix-shadow) 0%, 
+                var(--netflix-red) 10%, 
+                var(--netflix-red) 90%, 
+                var(--netflix-shadow) 100%
+            );
+            
+            /* Realistic Shadow casting onto back legs */
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+        }
+
+        /* --- FLASH EFFECT --- */
+        .flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* --- SPECTRUM (BARCODE) EFFECT --- */
+        .spectrum-stage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            pointer-events: none;
+            transform-style: preserve-3d;
+        }
+        
+        .spectrum-bar {
+            position: absolute;
+            width: 4px;
+            height: 105vh;
+            opacity: 0;
+        }
+
+        /* --- ANIMATION ORCHESTRATION --- */
+
+        .anim-start .n-logo {
+            opacity: 1;
+            animation: camera-zoom 4.0s cubic-bezier(0.7, 0, 0.1, 1) forwards;
+        }
+
+        .anim-start .leg-left {
+            animation: grow-up 0.5s cubic-bezier(0.2, 0.6, 0.3, 1) forwards;
+        }
+        .anim-start .leg-right {
+            animation: grow-up 0.5s cubic-bezier(0.2, 0.6, 0.3, 1) 0.1s forwards;
+        }
+        .anim-start .leg-middle {
+            animation: grow-diagonal 0.4s cubic-bezier(0.2, 0.6, 0.3, 1) 0.2s forwards;
+        }
+        
+        .anim-start .flash-overlay {
+            animation: flash-burst 0.2s linear 2.3s forwards;
+        }
+
+        /* --- KEYFRAMES --- */
+
+        @keyframes grow-up {
+            0% { transform: scaleY(0); }
+            100% { transform: scaleY(1); }
+        }
+
+        @keyframes grow-diagonal {
+            0% { transform: skewX(24.57deg) scaleY(0); }
+            100% { transform: skewX(24.57deg) scaleY(1.005); } 
+        }
+
+        @keyframes camera-zoom {
+            0% { transform: scale(1); opacity: 1; }
+            25% { transform: scale(1); opacity: 1; } 
+            70% { opacity: 1; }
+            80% { transform: scale(25); opacity: 1; } 
+            100% { transform: scale(60); opacity: 0; } 
+        }
+        
+        @keyframes flash-burst {
+            0% { opacity: 0; }
+            50% { opacity: 0.1; } /* Subtle flash */
+            100% { opacity: 0; }
+        }
+
+        @keyframes spectrum-fly {
+            0% { 
+                opacity: 0; 
+                transform: translateZ(-100px) scaleX(1); 
+            }
+            30% { opacity: 1; }
+            80% { opacity: 0.8; }
+            100% { 
+                opacity: 0; 
+                transform: translateZ(1200px) scaleX(8); 
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <button class="play-btn" onclick="playIntro()">Play Intro</button>
+
+    <!-- Audio Element -->
+    <!-- UPDATED: Added multiple sources for reliability -->
+    <audio id="netflix-sound" preload="auto">
+        <!-- Source 1: Reliable CDN -->
+        <source src="netflix.mp3.mp3" type="audio/mpeg">
+        <!-- Source 2: Backup -->
+        <source src="https://www.myinstants.com/media/sounds/netflix-intro-sound.mp3" type="audio/mpeg">
+        <!-- Local Fallback: If you have the file locally, uncomment this: -->
+        <!-- <source src="tadum.mp3" type="audio/mpeg"> -->
+    </audio>
+
+    <div class="flash-overlay"></div>
+
+    <div class="container" id="stage">
+        <!-- The N Logo -->
+        <div class="n-logo">
+            <div class="leg leg-left"></div>
+            <div class="leg leg-right"></div>
+            <div class="leg leg-middle"></div>
+        </div>
+        
+        <!-- Spectrum Container -->
+        <div class="spectrum-stage" id="spectrum"></div>
+    </div>
+
+    <script>
+        const colors = [
+            '#e50914', '#b20710', // Reds
+            '#ffffff', '#f5f5f1', // Whites
+            '#221f1f',            // Blacks
+            '#e50914',            // Red
+            '#54b9c5',            // Cyan
+            '#f5b505',            // Gold
+            '#8a1a1f'             // Dark Red
+        ];
+
+        function playIntro() {
+            const stage = document.getElementById('stage');
+            const spectrum = document.getElementById('spectrum');
+            const btn = document.querySelector('.play-btn');
+            const audio = document.getElementById('netflix-sound');
+            const flash = document.querySelector('.flash-overlay');
+
+            // Reset Animation
+            stage.classList.remove('anim-start');
+            // Clone flash to reset animation
+            const newFlash = flash.cloneNode(true);
+            flash.parentNode.replaceChild(newFlash, flash);
+            
+            spectrum.innerHTML = '';
+            void stage.offsetWidth; // Force Reflow
+            
+            // UI
+            btn.style.opacity = '0';
+            btn.style.pointerEvents = 'none';
+
+            // 1. Play Sound
+            audio.currentTime = 0;
+            // UPDATED: Set volume to 1.0 (Max) for better impact
+            audio.volume = 1.0; 
+            
+            var playPromise = audio.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Audio started!
+                })
+                .catch(error => {
+                    console.log("Audio playback failed. Browser might require interaction first.", error);
+                });
+            }
+            
+            // 2. Generate Spectrum
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < 60; i++) {
+                let bar = document.createElement('div');
+                bar.classList.add('spectrum-bar');
+                
+                let color = colors[Math.floor(Math.random() * colors.length)];
+                let width = Math.floor(Math.random() * 15) + 2 + 'px';
+                let left = Math.floor(Math.random() * 100) + '%'; 
+                // Adjusted timing to sync with the "Ta-Dum"
+                let animDelay = (2.2 + Math.random() * 0.5) + 's';
+                let animDuration = (0.5 + Math.random() * 0.5) + 's';
+
+                bar.style.backgroundColor = color;
+                bar.style.width = width;
+                bar.style.left = left;
+                
+                bar.style.animationName = 'spectrum-fly';
+                bar.style.animationTimingFunction = 'ease-in';
+                bar.style.animationFillMode = 'forwards';
+                bar.style.animationDelay = animDelay;
+                bar.style.animationDuration = animDuration;
+
+                frag.appendChild(bar);
+            }
+            spectrum.appendChild(frag);
+
+            // 3. Start Animation
+            stage.classList.add('anim-start');
+
+            // 4. Reset Button
+            setTimeout(() => {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                btn.innerText = 'Replay';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
